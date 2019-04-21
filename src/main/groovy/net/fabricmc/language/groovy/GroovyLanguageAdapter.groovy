@@ -1,4 +1,4 @@
-package com.thesledgehammer.fabricmc.language.groovy
+package net.fabricmc.language.groovy
 
 import net.fabricmc.loader.language.LanguageAdapter
 import net.fabricmc.loader.language.LanguageAdapterException
