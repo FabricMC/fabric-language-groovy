@@ -1,0 +1,6 @@
+{
+  "id": "fabric-language-groovy",
+  "name": "Fabric Language Groovy",
+  "description": "Fabric language module for Groovy.",
+  "version": "$version"
+}
