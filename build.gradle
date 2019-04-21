@@ -3,17 +3,19 @@ buildscript {
 		jcenter()
 		maven {
 			name = "Fabric"
-			url = "http://maven.modmuss50.me"
+			url = "https://maven.fabricmc.net"
 		}
 	}
 	dependencies {
-		classpath "net.fabricmc:fabric-loom:0.1.0-SNAPSHOT"
+		classpath "net.fabricmc:fabric-loom:0.2.1-SNAPSHOT"
 	}
 }
 
 plugins {
   id 'groovy'
   id 'idea'
+  id "maven-publish"
+  id "com.github.johnrengelman.shadow" version "2.0.4"
 }
 apply plugin: net.fabricmc.loom.LoomGradlePlugin
 
@@ -22,7 +24,7 @@ archivesBaseName = modid
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-def baseVersion = version
+def baseVersion = mod_version
 def ENV = System.getenv()
 version = baseVersion + "." + (ENV.BUILD_NUMBER ?: "local")
 
@@ -37,16 +39,27 @@ repositories {
 	}
 }
 
+configurations {
+	shadow
+	compile.extendsFrom shadow
+}
+
 dependencies {
 	//to change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}"
 	modCompile "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	modCompile "net.fabricmc:fabric:${project.fabric_version}"
-	compile "org.codehaus.groovy:groovy-all:${groovy_version}"
+	shadow "org.codehaus.groovy:groovy-all:${groovy_version}"
 }
+
+shadowJar {
+	classifier = "fat"
+	configurations = [project.configurations.shadow]
+	exclude("META-INF")
+}
+
+tasks.build.dependsOn shadowJar
 
 processResources {
 	from(sourceSets.main.resources.srcDirs) {
@@ -55,5 +68,32 @@ processResources {
 	}
 	from(sourceSets.main.resources.srcDirs) {
 		exclude 'mod.json'
+	}
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			groupId project.maven_group
+			artifactId project.archivesBaseName
+			version project.version
+
+			from components.java
+
+			artifact shadowJar {
+				classifier "fat"
+			}
+		}
+	}
+	repositories {
+		maven {
+			url "http://mavenupload.modmuss50.me/"
+			if (project.hasProperty('mavenPass')) {
+				credentials {
+					username 'buildslave'
+					password project.getProperty('mavenPass')
+				}
+			}
+		}
 	}
 }
