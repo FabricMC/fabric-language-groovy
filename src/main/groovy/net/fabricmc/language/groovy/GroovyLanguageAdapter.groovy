@@ -14,7 +14,6 @@ class GroovyLanguageAdapter implements LanguageAdapter  {
     @Override
     def <T> T create(ModContainer modContainer, String s, Class<T> aClass) throws LanguageAdapterException {
         Class groovyClass = Class.forName(aClass.getName());
-        groovyClass.newInstance()
         if(groovyClass == null) {
             LOGGER.debug("Unable to find Groovy object instance for ${aClass.name}, constructing new instance");
         }
