@@ -6,7 +6,7 @@ A Fabric Language module for the Apache Groovy programming language.
 Add it as a dependency:
 ```
 dependencies {
-	compile "net.fabricmc:fabric-language-groovy:1.0.0.+"
+	compile "net.fabricmc:fabric-language-groovy:1.0.1.+"
 }
 ```
 Set the language adapter for your mod to use by setting the languageAdapter property in the mod.json file:
