@@ -6,16 +6,17 @@ buildscript {
 			url = "https://maven.fabricmc.net"
 		}
 	}
+
 	dependencies {
-		classpath "net.fabricmc:fabric-loom:0.2.5-SNAPSHOT"
+		classpath "net.fabricmc:fabric-loom:0.2.6-SNAPSHOT"
 	}
 }
 
 plugins {
-  id 'groovy'
-  id 'idea'
-  id "maven-publish"
-  id "com.github.johnrengelman.shadow" version "5.0.0"
+	id 'groovy'
+  	id 'idea'
+  	id 'maven-publish'
+  	id "com.github.johnrengelman.shadow" version "5.0.0"
 }
 apply plugin: net.fabricmc.loom.LoomGradlePlugin
 
@@ -47,8 +48,8 @@ configurations {
 dependencies {
 	//to change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}"
-	modCompile "net.fabricmc:fabric-loader:${project.loader_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+		modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	shadow "org.codehaus.groovy:groovy-all:${groovy_version}"
 }
