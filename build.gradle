@@ -1,3 +1,5 @@
+import net.fabricmc.loom.LoomGradlePlugin
+
 buildscript {
 	repositories {
 		jcenter()
@@ -7,7 +9,7 @@ buildscript {
 		}
 	}
 	dependencies {
-		classpath "net.fabricmc:fabric-loom:0.2.3-SNAPSHOT"
+		classpath "net.fabricmc:fabric-loom:0.4-SNAPSHOT"
 	}
 }
 
@@ -17,7 +19,7 @@ plugins {
   id "maven-publish"
   id "com.github.johnrengelman.shadow" version "5.0.0"
 }
-apply plugin: net.fabricmc.loom.LoomGradlePlugin
+apply plugin: LoomGradlePlugin
 
 archivesBaseName = modid
 
@@ -31,7 +33,7 @@ version = baseVersion + "." + (ENV.BUILD_NUMBER ?: "local")
 repositories {
   maven {
 		name = "Fabric"
-    url = "http://maven.fabricmc.net/"
+    	url = "http://maven.fabricmc.net/"
   }
 	maven {
 		name = "Apache Groovy"

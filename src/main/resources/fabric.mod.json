@@ -1,6 +1,10 @@
 {
+  "schemaVersion": 1,
   "id": "fabric-language-groovy",
   "name": "Fabric Language Groovy",
   "description": "Fabric language module for Groovy.",
-  "version": "$version"
+  "version": "$version",
+  "languageAdapters": {
+    "groovy": "net.fabricmc.language.groovy.GroovyLanguageAdapter"
+  }
 }
