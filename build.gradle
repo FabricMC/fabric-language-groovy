@@ -1,43 +1,24 @@
-import net.fabricmc.loom.LoomGradlePlugin
-
-buildscript {
-	repositories {
-		jcenter()
-		maven {
-			name = "Fabric"
-			url = "https://maven.fabricmc.net"
-		}
-	}
-	dependencies {
-		classpath "net.fabricmc:fabric-loom:0.4-SNAPSHOT"
-	}
-}
-
 plugins {
-  id 'groovy'
-  id 'idea'
-  id "maven-publish"
-  id "com.github.johnrengelman.shadow" version "5.0.0"
+	id 'groovy'
+	id "maven-publish"
+	id "com.github.johnrengelman.shadow" version "6.1.0"
+	id "com.matthewprenger.cursegradle" version "1.4.0"
+	id "fabric-loom" version "0.5-SNAPSHOT"
 }
-apply plugin: LoomGradlePlugin
 
 archivesBaseName = modid
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
-def baseVersion = mod_version
+version = mod_version
 def ENV = System.getenv()
-version = baseVersion + "." + (ENV.BUILD_NUMBER ?: "local")
+version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
 repositories {
-  maven {
-		name = "Fabric"
-    	url = "http://maven.fabricmc.net/"
-  }
 	maven {
-		name = "Apache Groovy"
-		url = "https://mvnrepository.com/artifact/org.codehaus.groovy/groovy-all"
+		name = "Fabric"
+		url = "https://maven.fabricmc.net/"
 	}
 }
 
@@ -49,10 +30,18 @@ configurations {
 dependencies {
 	//to change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modCompile "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	shadow "org.codehaus.groovy:groovy-all:${groovy_version}"
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+
+	if (JavaVersion.current().isJava9Compatible()) {
+		it.options.release = 8
+	}
 }
 
 shadowJar {
@@ -64,12 +53,40 @@ shadowJar {
 tasks.build.dependsOn shadowJar
 
 processResources {
-	from(sourceSets.main.resources.srcDirs) {
-		include 'mod.json'
-		expand version: project.version
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
 	}
-	from(sourceSets.main.resources.srcDirs) {
-		exclude 'mod.json'
+}
+
+curseforge {
+	if (ENV.CURSEFORGE_API_KEY) {
+		apiKey = ENV.CURSEFORGE_API_KEY
+	}
+
+	project {
+		id = "336737"
+		changelog = "A changelog can be found at https://github.com/FabricMC/fabric-language-groovy"
+		releaseType = "release"
+		addGameVersion "1.14.4"
+		addGameVersion "1.15.2"
+		addGameVersion "1.16"
+		addGameVersion "1.16.4"
+		addGameVersion "1.17"
+		addGameVersion "Fabric"
+
+		mainArtifact(file("${project.buildDir}/libs/${archivesBaseName}-${version}-fat.jar")) {
+			displayName = "Fabric Language Groovy $version"
+		}
+
+		afterEvaluate {
+			uploadTask.dependsOn("remapJar")
+		}
+	}
+
+	options {
+		forgeGradleIntegration = false
 	}
 }
 
@@ -81,21 +98,32 @@ publishing {
 			version project.version
 
 			from components.java
-
-			artifact shadowJar {
-				classifier "fat"
-			}
 		}
 	}
 	repositories {
-		maven {
-			url "http://mavenupload.modmuss50.me/"
-			if (project.hasProperty('mavenPass')) {
+		if (ENV.MAVEN_URL) {
+			maven {
+				url ENV.MAVEN_URL
 				credentials {
-					username 'buildslave'
-					password project.getProperty('mavenPass')
+					username ENV.MAVEN_USERNAME
+					password ENV.MAVEN_PASSWORD
 				}
 			}
 		}
 	}
 }
+
+// A task to ensure that the version being released has not already been released.
+task checkVersion {
+	doFirst {
+		def xml = new URL("https://maven.fabricmc.net/net/fabricmc/fabric-language-groovy/maven-metadata.xml").text
+		def metadata = new XmlSlurper().parseText(xml)
+		def versions = metadata.versioning.versions.version*.text();
+		if (versions.contains(version)) {
+			throw new RuntimeException("${version} has already been released!")
+		}
+	}
+}
+
+publish.mustRunAfter checkVersion
+project.tasks.curseforge.mustRunAfter checkVersion
