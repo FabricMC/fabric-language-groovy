@@ -17,6 +17,6 @@ class GroovyLanguageAdapter implements LanguageAdapter  {
         if(groovyClass == null) {
             LOGGER.debug("Unable to find Groovy object instance for ${aClass.name}, constructing new instance")
         }
-        return DefaultLanguageAdapter.INSTANCE.create(modContainer, s, aClass)
+        return DefaultLanguageAdapter.INSTANCE.create(modContainer, s, groovyClass) as T
     }
 }
